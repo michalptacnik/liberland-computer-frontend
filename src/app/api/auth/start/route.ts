@@ -3,10 +3,13 @@ import { serverEnv } from "@/lib/bff/env";
 import { getDeviceId, setDeviceId } from "@/lib/bff/session";
 
 async function createInstallation(deviceId: string) {
-  const { apiBaseUrl, appVersion } = serverEnv();
+  const { apiBaseUrl, appVersion, clientApiKey } = serverEnv();
   const response = await fetch(`${apiBaseUrl}/installations/upsert`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": clientApiKey,
+    },
     body: JSON.stringify({
       deviceId,
       deviceType: "web",
@@ -71,4 +74,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

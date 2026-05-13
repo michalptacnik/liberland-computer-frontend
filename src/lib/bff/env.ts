@@ -18,11 +18,10 @@ export function serverEnv() {
       process.env.LIBERLAND_CORE_BASE_URL ?? DEFAULT_CORE_BASE_URL,
     ),
     matrixBaseUrl: trimSlash(process.env.MATRIX_BASE_URL ?? DEFAULT_MATRIX_BASE_URL),
-    clientApiKey: process.env.CLIENT_API_KEY ?? "",
+    clientApiKey: process.env.CLIENT_API_KEY ?? process.env.BACKEND_API_KEY ?? "",
     appBaseUrl,
     authCallbackUrl:
       process.env.AUTH_CALLBACK_URL ?? `${appBaseUrl}/api/auth/callback`,
     appVersion: process.env.APP_VERSION ?? "0.1.0",
   };
 }
-
