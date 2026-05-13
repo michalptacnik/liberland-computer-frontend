@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Liberland Computer Frontend
 
-## Getting Started
+Browser-first workspace for Liberland tasks, worktime, jobs, workspace, accounting, and property. The app uses Next.js App Router with route handlers as a backend-for-frontend, so browser code never receives the backend refresh token or client API key.
 
-First, run the development server:
+## Stack
+
+- Next.js App Router, TypeScript, Tailwind CSS
+- TanStack Query for data and mutations
+- Next route handlers for auth, BFF proxying, token refresh, and Matrix scrum send
+- Local-first development; Tauri wrapper can be added after the web MVP is stable
+
+## Setup
 
 ```bash
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The repo declares `pnpm@10.26.0`, so the equivalent commands are:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Fill `.env.local` with the Liberland client API key. Do not commit `.env.local`.
 
-## Learn More
+## Required Backend Configuration
 
-To learn more about Next.js, take a look at the following resources:
+The existing Liberland backend must redirect SSO callbacks to:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+http://localhost:3000/api/auth/callback
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+or to the value configured in `AUTH_CALLBACK_URL`.
 
-## Deploy on Vercel
+## Implemented MVP Surface
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Auth start/callback/refresh/logout/session routes
+- Allowlisted BFF proxy for tasks, work sessions, jobs, bids, workspace, work reports, accounting, property, supporting lookup endpoints, and chat notifications
+- Desktop app shell with Dashboard, Tasks, Worktime, Jobs, Workspace, Accounting, and Property modules
+- Worktime timer start/stop, session notes in local storage, scrum grouping, manual Matrix send, and open-app auto-send after 19:00 when Matrix auth is available
+- Unit tests for task/session normalization and scrum grouping
+- Playwright smoke test for local unauthenticated startup
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Commands
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npm run test:e2e
+```
+
+## Tauri Notes
+
+This app currently depends on Next route handlers for the BFF, so a future Tauri wrapper should either:
+
+- run the Next server locally and point the Tauri webview at it, or
+- host the BFF and configure the Tauri shell to use that hosted URL.
+
+Static export alone is not enough for the authenticated real-data MVP because auth cookies and upstream proxying require server routes.
+
