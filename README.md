@@ -14,56 +14,17 @@ Browser-first workspace for Liberland tasks, worktime, jobs, workspace, accounti
 ```bash
 cp .env.example .env.local
 npm install
-npm run dev:auth
+npm run dev
 ```
 
 The repo declares `pnpm@10.26.0`, so the equivalent commands are:
 
 ```bash
 pnpm install
-pnpm dev:auth
+pnpm dev
 ```
 
 Fill `.env.local` with the Liberland client API key. Do not commit `.env.local`.
-
-## Local SSO Callback Bridge
-
-The existing backend returns mobile deep-link callbacks after SSO, for example:
-
-```text
-cz.liberland.services.dev://auth_callback?...
-```
-
-A browser cannot consume that custom scheme directly, so local development uses a
-small macOS protocol bridge:
-
-```bash
-npm run auth:register-protocol
-```
-
-This creates `~/Applications/Liberland Auth Bridge.app` and registers the
-`cz.liberland.services.dev` and `cz.liberland.services` URL schemes. When the
-SSO bridge opens the mobile callback, macOS hands it to this local app, which
-forwards the same query string to:
-
-```text
-http://localhost:3000/api/auth/callback
-```
-
-No backend redirect changes are required.
-
-The bridge also starts `npm run dev` automatically if the callback arrives while
-the local server is down.
-
-If a browser refuses to hand off the custom URL scheme, open:
-
-```text
-http://localhost:3000/auth/rescue
-```
-
-and paste the current Liberland `/auth/callback?...` URL. The local BFF will ask
-the existing backend callback for its mobile payload and finish the session
-locally.
 
 ## Implemented MVP Surface
 

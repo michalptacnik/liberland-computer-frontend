@@ -5,10 +5,8 @@
   "packageManager": "pnpm@10.26.0",
   "scripts": {
     "dev": "next dev",
-    "dev:auth": "node scripts/dev-with-auth-bridge.mjs",
     "build": "next build",
     "start": "next start",
-    "auth:register-protocol": "node scripts/register-auth-protocol.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
