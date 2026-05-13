@@ -24,6 +24,14 @@ function mobileCallbackFromHtml(html: string) {
   return match?.[0].replaceAll("&amp;", "&") ?? null;
 }
 
+function resolveRescueUrl(value: string, requestUrl: string) {
+  const rawUrl = value.trim();
+  const localCallback = callbackUrlFromMobileScheme(rawUrl, requestUrl);
+  if (localCallback) return localCallback;
+
+  return null;
+}
+
 async function resolveBackendCallback(url: URL, requestUrl: string) {
   if (!allowedHosts.has(url.hostname) || !url.pathname.endsWith("/auth/callback")) {
     throw new Error("Unsupported callback URL.");
@@ -55,6 +63,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const directCallback = resolveRescueUrl(rawUrl, request.url);
+    if (directCallback) {
+      return NextResponse.redirect(directCallback);
+    }
+
     const localCallback = await resolveBackendCallback(new URL(rawUrl), request.url);
     return NextResponse.redirect(localCallback);
   } catch (error) {

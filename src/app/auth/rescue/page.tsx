@@ -10,7 +10,8 @@ export default function AuthRescuePage() {
               Finish Liberland Sign In
             </h1>
             <p className="mt-2 text-sm leading-6 text-slate-600">
-              Paste the current Liberland callback URL here.
+              Paste either the current backend callback URL or the “tap here”
+              mobile callback URL from the redirect page.
             </p>
           </div>
           <Field label="Callback URL">
