@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "auth:register-protocol": "node scripts/register-auth-protocol.mjs",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",

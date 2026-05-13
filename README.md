@@ -26,15 +26,31 @@ pnpm dev
 
 Fill `.env.local` with the Liberland client API key. Do not commit `.env.local`.
 
-## Required Backend Configuration
+## Local SSO Callback Bridge
 
-The existing Liberland backend must redirect SSO callbacks to:
+The existing backend returns mobile deep-link callbacks after SSO, for example:
+
+```text
+cz.liberland.services.dev://auth_callback?...
+```
+
+A browser cannot consume that custom scheme directly, so local development uses a
+small macOS protocol bridge:
+
+```bash
+npm run auth:register-protocol
+```
+
+This creates `~/Applications/Liberland Auth Bridge.app` and registers the
+`cz.liberland.services.dev` and `cz.liberland.services` URL schemes. When the
+SSO bridge opens the mobile callback, macOS hands it to this local app, which
+forwards the same query string to:
 
 ```text
 http://localhost:3000/api/auth/callback
 ```
 
-or to the value configured in `AUTH_CALLBACK_URL`.
+No backend redirect changes are required.
 
 ## Implemented MVP Surface
 
@@ -63,4 +79,3 @@ This app currently depends on Next route handlers for the BFF, so a future Tauri
 - host the BFF and configure the Tauri shell to use that hosted URL.
 
 Static export alone is not enough for the authenticated real-data MVP because auth cookies and upstream proxying require server routes.
-
