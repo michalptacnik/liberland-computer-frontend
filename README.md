@@ -42,8 +42,29 @@ npm run lint
 npm run typecheck
 npm run test
 npm run build
+npm run start
 npm run test:e2e
 ```
+
+## Production Server
+
+The app builds as a standalone Next.js server.
+
+```bash
+npm install
+npm run build
+npm run start
+```
+
+For a VPS/container host:
+
+```bash
+docker build -t liberland-computer-frontend .
+docker run --env-file .env.production -p 3000:3000 liberland-computer-frontend
+```
+
+Production env must set `APP_BASE_URL` and `AUTH_CALLBACK_URL` to the public
+HTTPS origin that serves this app, plus `CLIENT_API_KEY` or `BACKEND_API_KEY`.
 
 ## Tauri Notes
 

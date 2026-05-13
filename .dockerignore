@@ -1,0 +1,12 @@
+.env*
+!.env.example
+.git
+.next
+node_modules
+coverage
+test-results
+playwright-report
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
