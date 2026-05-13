@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, LogOut, RefreshCw } from "lucide-react";
+import { AppWindow, LogIn, LogOut, RefreshCw } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/client";
 import { Button, Panel } from "@/components/ui";
@@ -41,6 +41,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               <a href="/api/auth/start?register=true">
                 <Button variant="secondary">Create account</Button>
               </a>
+              <form action="/api/auth/import-installed-app" method="post">
+                <Button variant="secondary" type="submit">
+                  <AppWindow className="h-4 w-4" />
+                  Use installed app session
+                </Button>
+              </form>
             </div>
             {session.error ? (
               <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-800">

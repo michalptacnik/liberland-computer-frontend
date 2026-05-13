@@ -44,7 +44,7 @@ const cookieNames = {
 const baseCookie = {
   httpOnly: true,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  secure: (process.env.APP_BASE_URL ?? "").startsWith("https://"),
   path: "/",
 };
 
@@ -179,4 +179,3 @@ export function clearSessionCookies(response: NextResponse) {
     response.cookies.set(name, "", { ...baseCookie, maxAge: 0 });
   }
 }
-

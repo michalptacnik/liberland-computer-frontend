@@ -26,6 +26,10 @@ pnpm dev
 
 Fill `.env.local` with the Liberland client API key. Do not commit `.env.local`.
 
+On macOS, if the installed Liberland app has already received the SSO callback,
+use **Use installed app session** on the sign-in screen to import that local
+session into this frontend.
+
 ## Implemented MVP Surface
 
 - Auth start/callback/refresh/logout/session routes
