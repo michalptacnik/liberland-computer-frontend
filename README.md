@@ -14,14 +14,14 @@ Browser-first workspace for Liberland tasks, worktime, jobs, workspace, accounti
 ```bash
 cp .env.example .env.local
 npm install
-npm run dev
+npm run dev:auth
 ```
 
 The repo declares `pnpm@10.26.0`, so the equivalent commands are:
 
 ```bash
 pnpm install
-pnpm dev
+pnpm dev:auth
 ```
 
 Fill `.env.local` with the Liberland client API key. Do not commit `.env.local`.
@@ -51,6 +51,19 @@ http://localhost:3000/api/auth/callback
 ```
 
 No backend redirect changes are required.
+
+The bridge also starts `npm run dev` automatically if the callback arrives while
+the local server is down.
+
+If a browser refuses to hand off the custom URL scheme, open:
+
+```text
+http://localhost:3000/auth/rescue
+```
+
+and paste the current Liberland `/auth/callback?...` URL. The local BFF will ask
+the existing backend callback for its mobile payload and finish the session
+locally.
 
 ## Implemented MVP Surface
 

@@ -5,6 +5,7 @@ import { join } from "node:path";
 
 const appName = "Liberland Auth Bridge";
 const bundleId = "org.liberland.ComputerAuthBridge";
+const repoDir = process.cwd().replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 const appPath = join(homedir(), "Applications", `${appName}.app`);
 const scriptPath = join(tmpdir(), "liberland-auth-bridge.applescript");
 const plistPath = join(appPath, "Contents", "Info.plist");
@@ -17,15 +18,18 @@ const appleScript = `
 property localCallbackPrefix : "http://localhost:3000/api/auth/callback"
 property devPrefix : "cz.liberland.services.dev://auth_callback"
 property prodPrefix : "cz.liberland.services://auth_callback"
+property repoDir : "${repoDir}"
 
 on open location incomingUrl
   if incomingUrl starts with devPrefix then
     set callbackUrl to localCallbackPrefix & suffixAfter(incomingUrl, devPrefix)
     logForward()
+    ensureLocalServer()
     open location callbackUrl
   else if incomingUrl starts with prodPrefix then
     set callbackUrl to localCallbackPrefix & suffixAfter(incomingUrl, prodPrefix)
     logForward()
+    ensureLocalServer()
     open location callbackUrl
   else
     display dialog "Unsupported Liberland callback URL." buttons {"OK"} default button "OK"
@@ -42,6 +46,22 @@ end suffixAfter
 on logForward()
   do shell script "mkdir -p ~/Library/Logs; date -u '+%FT%TZ forwarded callback' >> ~/Library/Logs/LiberlandAuthBridge.log"
 end logForward
+
+on ensureLocalServer()
+  try
+    do shell script "curl -fsS http://localhost:3000/api/session >/dev/null"
+    return
+  end try
+
+  do shell script "cd " & quoted form of repoDir & " && nohup npm run dev >> ~/Library/Logs/LiberlandAuthBridge-next.log 2>&1 &"
+  repeat 40 times
+    delay 0.5
+    try
+      do shell script "curl -fsS http://localhost:3000/api/session >/dev/null"
+      return
+    end try
+  end repeat
+end ensureLocalServer
 `;
 
 function run(command, args) {
