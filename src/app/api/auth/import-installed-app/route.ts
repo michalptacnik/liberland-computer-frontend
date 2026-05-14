@@ -4,7 +4,12 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import { NextResponse, type NextRequest } from "next/server";
-import { applySessionCookies, type SessionUser } from "@/lib/bff/session";
+import {
+  applySessionCookies,
+  type SessionTokens,
+  type SessionUser,
+} from "@/lib/bff/session";
+import { refreshSession } from "@/lib/bff/upstream";
 
 const execFileAsync = promisify(execFile);
 const preferenceFile = "cz.liberland.services.plist";
@@ -82,6 +87,12 @@ function numberValue(value: unknown) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
 }
 
+function expiresInFromTimestamp(value: unknown) {
+  const expiresAt = numberValue(value);
+  if (!expiresAt) return undefined;
+  return Math.max(0, Math.floor(expiresAt - Date.now() / 1000));
+}
+
 function parseUser(value: unknown): SessionUser | undefined {
   const raw = stringValue(value);
   if (!raw) return undefined;
@@ -120,23 +131,48 @@ export async function POST(request: NextRequest) {
     }
 
     const user = parseUser(prefs["flutter.userInfo"]);
-    const redirect = new URL("/", request.url);
-    redirect.searchParams.set("auth", "imported");
-    const response = NextResponse.redirect(redirect, { status: 303 });
-    applySessionCookies(response, {
+    const importedSession: SessionTokens = {
       user,
       accessToken,
       refreshToken,
-      accessTokenExpiresIn: numberValue(prefs["flutter.accessTokenExpiresIn"]),
-      refreshTokenExpiresIn: numberValue(prefs["flutter.refreshTokenExpiresIn"]),
+      accessTokenExpiresIn:
+        expiresInFromTimestamp(prefs["flutter.accessTokenExpiresAt"]) ??
+        numberValue(prefs["flutter.accessTokenExpiresIn"]),
+      refreshTokenExpiresIn:
+        expiresInFromTimestamp(prefs["flutter.refreshTokenExpiresAt"]) ??
+        numberValue(prefs["flutter.refreshTokenExpiresIn"]),
       llAccessToken: stringValue(prefs["flutter.llAccessToken"]),
       llRefreshToken: stringValue(prefs["flutter.llRefreshToken"]),
-      llExpiresIn: numberValue(prefs["flutter.llAccessTokenExpiresIn"]),
-      llRefreshTokenExpiresIn: numberValue(
-        prefs["flutter.llRefreshTokenExpiresIn"],
-      ),
+      llExpiresIn:
+        expiresInFromTimestamp(prefs["flutter.llAccessTokenExpiresAt"]) ??
+        numberValue(prefs["flutter.llAccessTokenExpiresIn"]),
+      llRefreshTokenExpiresIn:
+        expiresInFromTimestamp(prefs["flutter.llRefreshTokenExpiresAt"]) ??
+        numberValue(prefs["flutter.llRefreshTokenExpiresIn"]),
       matrixAccessToken: stringValue(prefs["flutter.matrixAccessToken"]),
-    });
+    };
+
+    const session =
+      importedSession.accessTokenExpiresIn === 0
+        ? await refreshSession(importedSession)
+        : importedSession;
+
+    if (!session?.accessToken) {
+      return NextResponse.json(
+        {
+          message:
+            "The installed Liberland app session is expired and could not be refreshed. Open Liberland Services, sign in there, then retry this import.",
+        },
+        { status: 401 },
+      );
+    }
+
+    const host = request.headers.get("host") ?? "localhost:3000";
+    const protocol = request.headers.get("x-forwarded-proto") ?? "http";
+    const redirect = new URL("/", `${protocol}://${host}`);
+    redirect.searchParams.set("auth", "imported");
+    const response = NextResponse.redirect(redirect, { status: 303 });
+    applySessionCookies(response, { ...importedSession, ...session });
     return response;
   } catch (error) {
     return NextResponse.json(

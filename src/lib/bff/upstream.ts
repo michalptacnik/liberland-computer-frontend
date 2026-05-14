@@ -48,6 +48,28 @@ async function parseJsonSafely<T>(response: Response): Promise<T | null> {
   }
 }
 
+type RefreshResponse = SessionTokens & {
+  llTokens?: {
+    llAccessToken?: string;
+    llExpiresIn?: number;
+    llRefreshToken?: string;
+    llRefreshTokenExpiresIn?: number;
+  };
+};
+
+function normalizeRefreshResponse(payload: RefreshResponse | null) {
+  if (!payload) return null;
+  const { llTokens, ...tokens } = payload;
+  return {
+    ...tokens,
+    llAccessToken: tokens.llAccessToken ?? llTokens?.llAccessToken,
+    llRefreshToken: tokens.llRefreshToken ?? llTokens?.llRefreshToken,
+    llExpiresIn: tokens.llExpiresIn ?? llTokens?.llExpiresIn,
+    llRefreshTokenExpiresIn:
+      tokens.llRefreshTokenExpiresIn ?? llTokens?.llRefreshTokenExpiresIn,
+  } satisfies SessionTokens;
+}
+
 export async function refreshSession(
   session: SessionTokens,
 ): Promise<SessionTokens | null> {
@@ -64,7 +86,7 @@ export async function refreshSession(
   });
 
   if (!response.ok) return null;
-  return parseJsonSafely<SessionTokens>(response);
+  return normalizeRefreshResponse(await parseJsonSafely<RefreshResponse>(response));
 }
 
 async function upstreamRequest(
@@ -142,4 +164,3 @@ export async function proxyLiberlandRequest(
   if (refreshed) applySessionCookies(response, refreshed);
   return response;
 }
-
